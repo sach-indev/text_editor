@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <string.h>
 
 /*Defines*/
@@ -187,6 +188,20 @@ int getWindowSize(int *rows, int *cols)
     }
 }
 
+/*file I/O*/
+
+void editorOpen()
+{
+    char *line = "Hello, world!";
+    ssize_t linelen = 13;
+
+    E.row.size = linelen;
+    E.row.chars = malloc(linelen + 1);
+    memcpy(E.row.chars, line, linelen);
+    E.row.char[linelen] = '\0';
+    E.numrows = 1;
+}
+
 /*Append Buffer*/
 
 struct abuf
@@ -277,23 +292,30 @@ void editorDrawRows(struct abuf *ab)
     int y;
     for(y=0; y<E.screenrows; y++)
     {
-        if(y==E.screenrows/3)
+        if(y >= E.numrows)
         {
-            char welcome[80];
-            int welcomelen = snprintf(welcome, sizeof(welcome), "Editu editor -- version %s", EDITU_VERSION);
-            if(welcomelen > E.screencols) welcomelen = E.screencols;
-            int padding = (E.screencols - welcomelen)/2;
-            if(padding)
+            if(y==E.screenrows/3)
             {
-                abAppend(ab, "~", 1);
-                padding--;
+                char welcome[80];
+                int welcomelen = snprintf(welcome, sizeof(welcome), "Editu editor -- version %s", EDITU_VERSION);
+                if(welcomelen > E.screencols) welcomelen = E.screencols;
+                int padding = (E.screencols - welcomelen)/2;
+                if(padding)
+                {
+                    abAppend(ab, "~", 1);
+                    padding--;
+                }
+                while(padding--) abAppend(ab, " ", 1);
+                abAppend(ab, welcome, welcomelen);
             }
-            while(padding--) abAppend(ab, " ", 1);
-            abAppend(ab, welcome, welcomelen);
+            else abAppend(ab, "~", 1);   
         }
+
         else
         {
-            abAppend(ab, "~", 1);
+            int len = E.row.size;
+            if(len > E.screencols) len = E.screencols;
+            abAppend(ab, E.row.chars, len);
         }
 
         abAppend(ab, "\x1b[K", 3);
@@ -330,7 +352,7 @@ void initEditor()
     E.cx = 0;
     E.cy = 0;
     E.numrows = 0;
-    
+
     if(getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
 }
 
@@ -338,6 +360,7 @@ int main()
 {
     enableRawMode();
     initEditor();
+    editorOpen();
 
     while(1)
     {
