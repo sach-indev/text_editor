@@ -6,7 +6,7 @@ This project is inspired by how early Unix editors worked and focuses on underst
 
 ---
 
-## 🚀 Features
+## Features
 
 - Raw terminal input handling (`termios`)
 - Character-by-character reading
@@ -17,7 +17,7 @@ This project is inspired by how early Unix editors worked and focuses on underst
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Language:** C++ (with extensive use of C APIs)
 - **System Interfaces:**
